@@ -4,7 +4,7 @@
 // Note: In a raw browser environment without Vite/Webpack, process/import.meta might not exist, 
 // so we use a safe fallback.
 const API_URL = (typeof import.meta !== 'undefined' && (import.meta as any).env && (import.meta as any).env.VITE_API_URL) 
-  || 'http://localhost:3001/api';
+  || 'https://openkey.theflagisraised.xyz/api';
 
 export const api = {
   async register(username: string, password: string): Promise<any> {

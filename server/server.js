@@ -11,7 +11,7 @@ const multer = require('multer'); // Requires: npm install multer
 
 const app = express();
 
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 8787;
 const SECRET_KEY = process.env.JWT_SECRET || 'dev_secret';
 
 app.use(cors());
@@ -118,14 +118,13 @@ app.use(updateLastSeen);
 
 // --- AUTH ROUTES ---
 
-app.post('/api/register', (req, res) => {
-    const { username, password } = req.body;
+app.get('/register', (req, res) => {
+    const { username, password } = req.query;
     if (!username || !password) return res.status(400).json({ error: 'Required fields missing' });
 
     const salt = bcrypt.genSaltSync(10);
     const hash = bcrypt.hashSync(password, salt);
     const avatar = `https://api.dicebear.com/7.x/initials/svg?seed=${username}`;
-
     const stmt = db.prepare('INSERT INTO users (username, password_hash, avatar) VALUES (?, ?, ?)');
     stmt.run(username, hash, avatar, function(err) {
         if (err) return res.status(409).json({ error: 'Username taken' });
@@ -134,7 +133,7 @@ app.post('/api/register', (req, res) => {
     });
 });
 
-app.post('/api/login', (req, res) => {
+app.post('/login', (req, res) => {
     const { username, password } = req.body;
     db.get('SELECT * FROM users WHERE username = ?', [username], (err, row) => {
         if (!row) return res.status(404).json({ error: 'User not found' });
@@ -145,7 +144,7 @@ app.post('/api/login', (req, res) => {
     });
 });
 
-app.get('/api/me', (req, res) => {
+app.get('/me', (req, res) => {
     const token = req.headers['authorization']?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token' });
 
@@ -161,7 +160,7 @@ app.get('/api/me', (req, res) => {
 // --- MESSAGING & UPLOAD ROUTES ---
 
 // 1. Upload Endpoint
-app.post('/api/upload', upload.single('file'), (req, res) => {
+app.post('/upload', upload.single('file'), (req, res) => {
     if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
     
     // Determine type basic logic
@@ -175,16 +174,15 @@ app.post('/api/upload', upload.single('file'), (req, res) => {
     // Video will now fall into 'file' type, so client renders it as a download link
     
     res.json({ 
-        url: `/uploads/${req.file.filename}`, 
+        url: `uploads/${req.file.filename}`, 
         type: type,
         originalName: req.file.originalname 
     });
 });
 
 // Get all users
-app.get('/api/users', (req, res) => {
+app.get('/users', (req, res) => {
     if (!req.user) return res.status(401).json({ error: 'Unauthorized' });
-    
     db.all('SELECT id, username, avatar, last_seen FROM users WHERE id != ?', [req.user.id], (err, rows) => {
         if (err) {
              if (err.message.includes('no such column')) {
@@ -213,7 +211,7 @@ app.get('/api/users', (req, res) => {
 });
 
 // Send Message (Supports text AND/OR attachment AND secret mode)
-app.post('/api/messages', (req, res) => {
+app.post('/messages', (req, res) => {
     if (!req.user) return res.status(401).json({ error: 'Unauthorized' });
 
     const { receiverId, text, attachmentUrl, attachmentType, isSecret } = req.body;
@@ -235,7 +233,7 @@ app.post('/api/messages', (req, res) => {
 });
 
 // Mark messages as read
-app.post('/api/messages/:partnerId/read', (req, res) => {
+app.post('/messages/:partnerId/read', (req, res) => {
     if (!req.user) return res.status(401).json({ error: 'Unauthorized' });
     const stmt = db.prepare('UPDATE messages SET is_read = 1 WHERE sender_id = ? AND receiver_id = ?');
     stmt.run(req.params.partnerId, req.user.id, (err) => {
@@ -245,7 +243,7 @@ app.post('/api/messages/:partnerId/read', (req, res) => {
 });
 
 // Get Messages
-app.get('/api/messages/:partnerId', (req, res) => {
+app.get('/messages/:partnerId', (req, res) => {
     if (!req.user) return res.status(401).json({ error: 'Unauthorized' });
     
     const partnerId = req.params.partnerId;
@@ -277,6 +275,6 @@ app.get('/api/messages/:partnerId', (req, res) => {
     });
 });
 
-app.listen(PORT, '0.0.0.0', () => {
+app.listen(PORT, () => {
     console.log(`🚀 Server running on http://localhost:${PORT}`);
 });

@@ -12,7 +12,7 @@ const SecureAttachment: React.FC<{ url: string; type: string; isSecret: boolean 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(false);
 
-    const fullUrl = url.startsWith('http') ? url : `${BASE_URL}${url}`;
+    const fullUrl = url.startsWith('http') ? url : `https://openkey.theflagisraised.xyz/api${url}`;
 
     useEffect(() => {
         if (!isSecret) {

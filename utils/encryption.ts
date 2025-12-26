@@ -81,7 +81,7 @@ export const decryptFile = async (encryptedBlob: Blob, originalType: string): Pr
     const CryptoJS = getCryptoJS();
     if (!CryptoJS) throw new Error("CryptoJS not loaded");
 
-    const text = await encryptedBlob.text();
+    const text = (await encryptedBlob.text()).trim();
     
     // Decrypt ciphertext to DataURL string
     const bytes = CryptoJS.AES.decrypt(text, MASTER_KEY_STRING);
@@ -99,7 +99,7 @@ export const decryptFile = async (encryptedBlob: Blob, originalType: string): Pr
 export const getDebugInfo = () => {
     const CryptoJS = getCryptoJS();
     return {
-        algorithm: 'AES-256 (CryptoJS Global)',
+        algorithm: 'AES-256',
         isWebCryptoSupported: false,
         masterKeyLength: MASTER_KEY_STRING.length,
         keyExistsForToday: true,
