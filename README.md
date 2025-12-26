@@ -1,6 +1,4 @@
 <div align="center">
-  
-  <img src="https://img.icons8.com/fluency/96/null/encryption.png" alt="OpenKey Logo" width="100" />
 
   # OpenKey
   
